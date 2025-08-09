@@ -24,7 +24,7 @@ const subjectsBySemester: { [key: string]: string[] } = {
   "3": [
     "International Trade",
     "Indian Economic Policy",
-    "Statistical Data Analysis &amp; Software",
+    "Statistical Data Analysis & Software",
     "Applied Predictive Modelling",
   ],
   "4": ["Public Economics", "Financial Economics", "Environmental Economics", "Dissertation"],
@@ -34,7 +34,7 @@ export function ProfileSetupForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -119,7 +119,7 @@ export function ProfileSetupForm() {
           )}
         />
         
-        {selectedSemester &amp;&amp; subjectsBySemester[selectedSemester] &amp;&amp; (
+        {selectedSemester && subjectsBySemester[selectedSemester] && (
           <Card className="bg-muted/50">
             <CardHeader>
               <CardTitle className="text-lg">Your Subjects</CardTitle>
