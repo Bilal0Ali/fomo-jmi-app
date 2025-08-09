@@ -54,7 +54,8 @@ export function ProfileSetupForm() {
         title: "Profile Saved!",
         description: "You're all set. Welcome to the hub!",
       });
-      router.push("/home");
+      const url = `/home?name=${encodeURIComponent(values.name.split(' ')[0])}`;
+      router.push(url);
       setIsLoading(false);
     }, 1500);
   }

@@ -1,6 +1,10 @@
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { AskDoubtDialog } from '@/components/dashboard/ask-doubt-dialog';
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from "react";
 
 const subjects = [
   "International Trade",
@@ -9,9 +13,9 @@ const subjects = [
   "Applied Predictive Modelling",
 ];
 
-export default function HomePage() {
-  // In a real app, this would come from the user's profile
-  const userName = "Ayesha"; 
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const userName = searchParams.get('name') || "Ayesha";
 
   return (
     <div className="flex flex-col gap-8">
@@ -41,4 +45,13 @@ export default function HomePage() {
       </div>
     </div>
   );
+}
+
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
+  )
 }
