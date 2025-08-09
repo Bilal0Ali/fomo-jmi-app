@@ -1,5 +1,9 @@
+
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UploadResourceDialog } from "@/components/dashboard/upload-resource-dialog";
 
 function toTitleCase(str: string) {
   return str.replace(/-/g, ' ').replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1));
@@ -23,7 +27,10 @@ export default function SubjectPage({ params }: { params: { slug: string } }) {
         <TabsContent value="notes">
           <Card>
             <CardHeader>
-              <CardTitle>Notes</CardTitle>
+                <div className="flex items-center justify-between">
+                    <CardTitle>Notes</CardTitle>
+                    <UploadResourceDialog subject={subjectName} type="Notes" />
+                </div>
               <CardDescription>All notes for {subjectName}.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -36,7 +43,10 @@ export default function SubjectPage({ params }: { params: { slug: string } }) {
         <TabsContent value="resources">
           <Card>
             <CardHeader>
-              <CardTitle>Resources</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Resources</CardTitle>
+                <UploadResourceDialog subject={subjectName} type="Resources" />
+              </div>
               <CardDescription>All resources for {subjectName}.</CardDescription>
             </CardHeader>
             <CardContent>
