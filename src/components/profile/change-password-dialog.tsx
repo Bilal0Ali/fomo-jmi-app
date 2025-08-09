@@ -61,17 +61,6 @@ export function ChangePasswordDialog() {
     // Mock backend call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Mock logic: check if current password is "password123"
-    if (values.currentPassword !== 'password123') {
-      toast({
-        title: 'Error',
-        description: 'Current password incorrect.',
-        variant: 'destructive',
-      });
-      setIsLoading(false);
-      return;
-    }
-
     // Mock successful password update
     toast({
       title: 'Success',
