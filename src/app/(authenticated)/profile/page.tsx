@@ -27,13 +27,13 @@ export default function ProfilePage() {
   const [profilePic, setProfilePic] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedName = localStorage.getItem('userName');
     const storedFullName = localStorage.getItem('userFullName');
     if (storedFullName) {
       setName(storedFullName);
-    } else if (storedName) {
-      // Fallback for older data
-      setName(storedName);
+    }
+    const storedEmail = localStorage.getItem('userEmail');
+    if (storedEmail) {
+      setEmail(storedEmail);
     }
   }, []);
 
@@ -53,6 +53,7 @@ export default function ProfilePage() {
     // Clear user session
     localStorage.removeItem('userName');
     localStorage.removeItem('userFullName');
+    localStorage.removeItem('userEmail');
     
     toast({
       title: "Logged Out",

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,6 +41,7 @@ export function LoginForm() {
     setTimeout(() => {
       // In a real app, you would handle Firebase auth here.
       // For this demo, we'll assume a successful login.
+      localStorage.setItem('userEmail', values.email);
       
       const isProfileComplete = false; // Change to true to skip profile setup
 
