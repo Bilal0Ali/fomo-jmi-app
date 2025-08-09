@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, Edit, Save, LogOut, Shield, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { ChangePasswordDialog } from "@/components/profile/change-password-dialog";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -67,7 +68,7 @@ export default function ProfilePage() {
     if (parts.length > 1) {
       return parts[0][0] + parts[parts.length - 1][0];
     }
-    return parts[0].slice(0, 2);
+    return name.slice(0, 2);
   };
   
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,7 +222,7 @@ export default function ProfilePage() {
             </div>
             <Separator />
             <div className="flex flex-col sm:flex-row gap-4">
-                <Button variant="outline">Change Password</Button>
+                <ChangePasswordDialog />
                 <Button variant="destructive" className="sm:ml-auto" onClick={handleLogout}>
                     <LogOut className="mr-2"/> Logout
                 </Button>
