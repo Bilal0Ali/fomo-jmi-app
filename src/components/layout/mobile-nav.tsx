@@ -25,7 +25,7 @@ export function MobileNav() {
             href={item.href}
             className={cn(
               "flex flex-col items-center gap-1 rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground",
-              pathname.startsWith(item.href) &amp;&amp; "text-accent"
+              pathname.startsWith(item.href) && "text-accent"
             )}
           >
             <item.icon className="h-5 w-5" />

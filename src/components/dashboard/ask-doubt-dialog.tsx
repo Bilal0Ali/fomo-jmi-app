@@ -128,7 +128,7 @@ export function AskDoubtDialog() {
           </div>
         </div>
 
-        {aiResponse &amp;&amp; (
+        {aiResponse && (
           <Alert>
             <Bot className="h-4 w-4" />
             <AlertTitle>AI Suggestions</AlertTitle>
