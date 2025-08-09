@@ -1,10 +1,10 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { AskDoubtDialog } from '@/components/dashboard/ask-doubt-dialog';
-import { useSearchParams } from 'next/navigation'
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 const subjects = [
   "International Trade",
@@ -14,8 +14,14 @@ const subjects = [
 ];
 
 function HomeContent() {
-  const searchParams = useSearchParams();
-  const userName = searchParams.get('name') || "Ayesha";
+  const [userName, setUserName] = useState("Ayesha");
+
+  useEffect(() => {
+    const storedName = localStorage.getItem('userName');
+    if (storedName) {
+      setUserName(storedName);
+    }
+  }, []);
 
   return (
     <div className="flex flex-col gap-8">

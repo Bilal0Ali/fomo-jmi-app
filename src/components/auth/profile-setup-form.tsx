@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,12 +51,14 @@ export function ProfileSetupForm() {
     setIsLoading(true);
     // Mock API call to save profile data
     setTimeout(() => {
+      // Save the user's name to localStorage
+      localStorage.setItem('userName', values.name.split(' ')[0]);
+
       toast({
         title: "Profile Saved!",
         description: "You're all set. Welcome to the hub!",
       });
-      const url = `/home?name=${encodeURIComponent(values.name.split(' ')[0])}`;
-      router.push(url);
+      router.push('/home');
       setIsLoading(false);
     }, 1500);
   }
