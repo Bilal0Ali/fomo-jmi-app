@@ -53,6 +53,8 @@ export function ProfileSetupForm() {
     setTimeout(() => {
       // Save the user's name to localStorage
       localStorage.setItem('userName', values.name.split(' ')[0]);
+      localStorage.setItem('userFullName', values.name);
+
 
       toast({
         title: "Profile Saved!",
