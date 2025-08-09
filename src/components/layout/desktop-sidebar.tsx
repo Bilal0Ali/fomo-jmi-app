@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookCopy, Library, MessageSquareQuestion, User, PenSquare } from 'lucide-react';
+import { Home, BookCopy, Library, MessageSquareQuote, User, PenSquare } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
@@ -10,7 +10,7 @@ const navItems = [
   { href: '/home', icon: Home, label: 'Home' },
   { href: '/notes', icon: BookCopy, label: 'Notes' },
   { href: '/resources', icon: Library, label: 'Resources' },
-  { href: '/requests', icon: MessageSquareQuestion, label: 'Requests & Doubts' },
+  { href: '/requests', icon: MessageSquareQuote, label: 'Requests & Doubts' },
   { href: '/profile', icon: User, label: 'Profile' },
 ];
 
