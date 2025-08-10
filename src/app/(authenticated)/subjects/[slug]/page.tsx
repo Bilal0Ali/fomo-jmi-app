@@ -54,7 +54,7 @@ export default function SubjectPage({ params }: { params: { slug: string } }) {
                <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-lg">
                 <p className="text-muted-foreground">Resources for {subjectName} will be here.</p>
               </div>
-            </CrdContent>
+            </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="doubts">
