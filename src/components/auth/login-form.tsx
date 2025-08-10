@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { signInAnonymously, updateProfile } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -37,28 +39,46 @@ export function LoginForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // Mock API call
-    setTimeout(() => {
-      // In a real app, you would handle Firebase auth here.
-      // For this demo, we'll assume a successful login.
-      localStorage.setItem('userEmail', values.email);
+    try {
+      // In a real app, you would use signInWithEmailAndPassword.
+      // For now, we'll sign in anonymously for demo purposes to get a UID.
+      const userCredential = await signInAnonymously(auth);
       
-      const isProfileComplete = false; // Change to true to skip profile setup
+      localStorage.setItem('userEmail', values.email);
+
+      // In a real flow, profile setup would happen *before* this,
+      // and we'd pull the name from there.
+      const isProfileComplete = localStorage.getItem('userFullName');
 
       toast({
         title: "Login Successful",
         description: "Welcome back!",
       });
-
+      
       if (isProfileComplete) {
+        // If profile is complete, set the display name for the session
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, {
+            displayName: isProfileComplete
+          });
+        }
         router.push("/home");
       } else {
         router.push("/profile-setup");
       }
-      setIsLoading(false);
-    }, 1500);
+
+    } catch (error) {
+        console.error("Login Error:", error);
+        toast({
+            title: "Login Failed",
+            description: "Could not log you in. Please try again.",
+            variant: "destructive"
+        });
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   return (

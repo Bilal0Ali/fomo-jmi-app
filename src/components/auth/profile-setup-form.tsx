@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { auth } from "@/lib/firebase";
+import { updateProfile } from "firebase/auth";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -47,22 +49,39 @@ export function ProfileSetupForm() {
 
   const selectedSemester = form.watch("semester");
 
-  function onSubmit(values: z.infer<typeof profileSchema>) {
+  async function onSubmit(values: z.infer<typeof profileSchema>) {
     setIsLoading(true);
-    // Mock API call to save profile data
-    setTimeout(() => {
-      // Save the user's name to localStorage
+    const user = auth.currentUser;
+
+    if (!user) {
+        toast({ title: "Authentication Error", description: "You must be logged in.", variant: "destructive" });
+        setIsLoading(false);
+        return;
+    }
+
+    try {
+      // Set the user's display name in Firebase Auth
+      await updateProfile(user, { displayName: values.name });
+
+      // Save other details to localStorage for this demo
       localStorage.setItem('userName', values.name.split(' ')[0]);
       localStorage.setItem('userFullName', values.name);
-
 
       toast({
         title: "Profile Saved!",
         description: "You're all set. Welcome to the hub!",
       });
       router.push('/home');
-      setIsLoading(false);
-    }, 1500);
+    } catch (error) {
+        console.error("Profile setup error:", error);
+        toast({
+            title: "Error",
+            description: "Could not save your profile. Please try again.",
+            variant: "destructive"
+        });
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   return (
