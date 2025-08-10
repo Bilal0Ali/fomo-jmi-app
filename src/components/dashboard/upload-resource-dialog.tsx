@@ -21,7 +21,8 @@ interface UploadResourceDialogProps {
 
 export function UploadResourceDialog({ subject, type }: UploadResourceDialogProps) {
   const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [downloadURL, setDownloadURL] = useState<string | null>(null);
   
@@ -38,7 +39,8 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
       setFile(null);
       setUploadProgress(0);
       setDownloadURL(null);
-      setIsSubmitting(false);
+      setIsUploading(false);
+      setIsSaving(false);
     }
   }, [open]);
 
@@ -56,7 +58,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
 
     setUploadProgress(0);
     setDownloadURL(null);
-    setIsSubmitting(true); // Disable button while uploading
+    setIsUploading(true); 
 
     const storage = getStorage();
     const uniqueFileName = `${Date.now()}-${fileToUpload.name}`;
@@ -76,7 +78,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                 variant: "destructive",
             });
             setUploadProgress(0);
-            setIsSubmitting(false);
+            setIsUploading(false);
         },
         async () => {
             try {
@@ -86,7 +88,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                     title: "File Ready!",
                     description: "Your file has been uploaded. Add a title and submit.",
                 });
-                setIsSubmitting(false); // Enable button on success
+                setIsUploading(false); 
             } catch (error) {
                  console.error("Could not get download URL:", error);
                  toast({
@@ -94,7 +96,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                     description: "Could not process the uploaded file. Please try again.",
                     variant: "destructive",
                 });
-                setIsSubmitting(false);
+                setIsUploading(false);
             }
         }
     );
@@ -116,7 +118,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
       return;
     }
 
-    setIsSubmitting(true);
+    setIsSaving(true);
 
     try {
         await addDoc(collection(db, 'resources'), {
@@ -144,10 +146,15 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
             variant: "destructive",
         });
     } finally {
-        setIsSubmitting(false);
+        setIsSaving(false);
     }
   };
   
+  const getButtonText = () => {
+    if (isSaving) return 'Saving...';
+    if (isUploading) return 'Uploading...';
+    return 'Upload';
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -186,7 +193,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                     <Label htmlFor="file" className="text-right">File</Label>
                     <Input id="file" type="file" className="col-span-3" onChange={handleFileChange} required accept=".pdf,.doc,.docx,.ppt,.pptx" />
                 </div>
-                {uploadProgress > 0 && (
+                {isUploading && (
                     <div className="col-span-4 px-1">
                         <Progress value={uploadProgress} className="w-full" />
                         <p className="text-xs text-muted-foreground mt-1 text-center">{uploadProgress < 100 ? `${Math.round(uploadProgress)}% uploaded` : 'Upload complete!'}</p>
@@ -194,8 +201,8 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                 )}
             </div>
             <DialogFooter>
-            <Button type="submit" disabled={isSubmitting || uploadProgress < 100} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                {isSubmitting ? (uploadProgress < 100 ? 'Uploading...' : 'Saving...') : 'Upload'}
+            <Button type="submit" disabled={isUploading || isSaving || !downloadURL} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                {getButtonText()}
             </Button>
             </DialogFooter>
         </form>
