@@ -67,10 +67,12 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
 
     uploadTask.on('state_changed',
         (snapshot: UploadTaskSnapshot) => {
+            console.log("Upload state changed:", snapshot); // Log the snapshot
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             setUploadProgress(progress);
         },
         (error) => {
+            console.error("Upload error:", error); // More verbose error logging
             console.error("Upload error in progress:", error);
             toast({
                 title: "Upload Failed",
@@ -91,7 +93,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                 setIsUploading(false); 
             } catch (error) {
                  console.error("Could not get download URL:", error);
-                 toast({
+                 toast({ // Also log error when getting download URL
                     title: "Upload Failed",
                     description: "Could not process the uploaded file. Please try again.",
                     variant: "destructive",
