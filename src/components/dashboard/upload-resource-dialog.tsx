@@ -191,7 +191,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
             </div>
             <DialogFooter>
             <Button type="submit" disabled={!downloadURL || isSubmitting} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                {isSubmitting ? 'Saving...' : 'Save Resource'}
+                {isSubmitting ? 'Uploading...' : 'Upload'}
             </Button>
             </DialogFooter>
         </form>
