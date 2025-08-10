@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UploadResourceDialog } from "@/components/dashboard/upload-resource-dialog";
@@ -10,8 +11,10 @@ function toTitleCase(str: string) {
   return str.replace(/-/g, ' ').replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1));
 }
 
-export default function SubjectPage({ params: { slug } }: { params: { slug: string } }) {
-  const subjectName = toTitleCase(slug || '');
+export default function SubjectPage() {
+  const params = useParams();
+  const slug = typeof params.slug === 'string' ? params.slug : '';
+  const subjectName = toTitleCase(slug);
 
   if (!subjectName) {
     return <div>Loading subject...</div>;
