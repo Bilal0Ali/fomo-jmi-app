@@ -6,11 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UploadResourceDialog } from "@/components/dashboard/upload-resource-dialog";
 
 function toTitleCase(str: string) {
+  if (!str) return '';
   return str.replace(/-/g, ' ').replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1));
 }
 
 export default function SubjectPage({ params }: { params: { slug: string } }) {
-  const subjectName = toTitleCase(params.slug);
+  const subjectName = toTitleCase(params?.slug);
 
   return (
     <div className="flex flex-col gap-8">
