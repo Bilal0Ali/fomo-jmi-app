@@ -15,6 +15,7 @@ import { Upload, Edit, Save, LogOut, Shield, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { ChangePasswordDialog } from "@/components/profile/change-password-dialog";
+import { ImageCropperDialog } from "@/components/profile/image-cropper-dialog";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -26,6 +27,9 @@ export default function ProfilePage() {
   const [course, setCourse] = useState("M.A. Economics");
   const [semester, setSemester] = useState("3");
   const [profilePic, setProfilePic] = useState<string | null>(null);
+  
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [cropperOpen, setCropperOpen] = useState(false);
 
   useEffect(() => {
     const storedFullName = localStorage.getItem('userFullName');
@@ -43,6 +47,9 @@ export default function ProfilePage() {
     // In a real app, you would save this to a backend.
     localStorage.setItem('userFullName', name);
     localStorage.setItem('userName', name.split(' ')[0]);
+    if (profilePic) {
+      localStorage.setItem('userProfilePic', profilePic);
+    }
     toast({
       title: "Profile Updated",
       description: "Your changes have been saved successfully.",
@@ -55,6 +62,7 @@ export default function ProfilePage() {
     localStorage.removeItem('userName');
     localStorage.removeItem('userFullName');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('userProfilePic');
     
     toast({
       title: "Logged Out",
@@ -76,7 +84,8 @@ export default function ProfilePage() {
       const file = e.target.files[0];
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfilePic(reader.result as string);
+        setImageToCrop(reader.result as string);
+        setCropperOpen(true);
       }
       reader.readAsDataURL(file);
     }
@@ -95,6 +104,16 @@ export default function ProfilePage() {
             {isEditing ? "Save Changes" : "Edit Profile"}
         </Button>
       </div>
+
+      <ImageCropperDialog 
+        image={imageToCrop}
+        open={cropperOpen}
+        onOpenChange={setCropperOpen}
+        onCropComplete={(croppedImage) => {
+          setProfilePic(croppedImage);
+          setCropperOpen(false);
+        }}
+      />
 
       <Card>
         <CardHeader>
