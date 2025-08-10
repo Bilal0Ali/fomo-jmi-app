@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { queryDoubtsBySubject, Doubt } from "@/lib/firestore/doubts";
-import { auth } from "@/lib/firebase"; // Import auth to get current user UID
 
 "use client";
 
+import { useState, useEffect } from 'react';
+import { queryDoubtsBySubject, Doubt } from "@/lib/firestore/doubts";
+import { auth } from "@/lib/firebase"; // Import auth to get current user UID
 import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
