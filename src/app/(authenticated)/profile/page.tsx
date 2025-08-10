@@ -16,6 +16,8 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { ChangePasswordDialog } from "@/components/profile/change-password-dialog";
 import { ImageCropperDialog } from "@/components/profile/image-cropper-dialog";
+import { auth } from "@/lib/firebase";
+import { queryDoubtsByAskedBy, Doubt } from "@/lib/firestore/doubts";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -31,6 +33,9 @@ export default function ProfilePage() {
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [cropperOpen, setCropperOpen] = useState(false);
 
+  const [userDoubts, setUserDoubts] = useState<Doubt[]>([]);
+  const [loadingUserDoubts, setLoadingUserDoubts] = useState(true);
+
   useEffect(() => {
     const storedFullName = localStorage.getItem('userFullName');
     if (storedFullName) {
@@ -40,6 +45,24 @@ export default function ProfilePage() {
     if (storedEmail) {
       setEmail(storedEmail);
     }
+  }, []);
+
+  useEffect(() => {
+    const fetchUserDoubts = async () => {
+      setLoadingUserDoubts(true);
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          const fetchedDoubts = await queryDoubtsByAskedBy(user.uid);
+          setUserDoubts(fetchedDoubts);
+        } catch (error) {
+          console.error("Error fetching user doubts:", error);
+          // Optionally show a toast or error message
+        }
+      }
+      setLoadingUserDoubts(false);
+    };
+    fetchUserDoubts();
   }, []);
 
 
@@ -209,9 +232,24 @@ export default function ProfilePage() {
                     </div>
                 </TabsContent>
                 <TabsContent value="my-requests">
-                    <div className="flex items-center justify-center h-40 border-2 border-dashed rounded-lg mt-4">
-                        <p className="text-muted-foreground">You haven't made any requests yet.</p>
+                  {loadingUserDoubts ? (
+                    <div className="flex items-center justify-center h-40 mt-4">
+                      <p className="text-muted-foreground">Loading your requests...</p>
                     </div>
+                  ) : userDoubts.length === 0 ? (
+                    <div className="flex items-center justify-center h-40 border-2 border-dashed rounded-lg mt-4">
+                      <p className="text-muted-foreground">You haven't made any requests yet.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 mt-4">
+                      {userDoubts.map((doubt) => (
+                        <div key={doubt.id} className="border p-4 rounded-md">
+                          <p className="font-semibold">{doubt.questionText}</p>
+                          <p className="text-sm text-muted-foreground">Subject: {doubt.subject}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </TabsContent>
                 <TabsContent value="my-contributions">
                     <div className="flex items-center justify-center h-40 border-2 border-dashed rounded-lg mt-4">

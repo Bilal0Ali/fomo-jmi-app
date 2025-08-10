@@ -1,3 +1,6 @@
+import { useState, useEffect } from 'react';
+import { queryDoubtsBySubject, Doubt } from "@/lib/firestore/doubts";
+import { auth } from "@/lib/firebase"; // Import auth to get current user UID
 
 "use client";
 
@@ -19,6 +22,25 @@ export default function SubjectPage() {
   if (!subjectName) {
     return <div>Loading subject...</div>;
   }
+const [doubts, setDoubts] = useState<Doubt[]>([]);
+const [loadingDoubts, setLoadingDoubts] = useState(true);
+useEffect(() => {
+  const fetchDoubts = async () => {
+    setLoadingDoubts(true);
+    if (subjectName) {
+      try {
+        const subjectDoubts = await queryDoubtsBySubject(subjectName);
+        setDoubts(subjectDoubts);
+      } catch (error) {
+        console.error("Error fetching subject doubts:", error);
+        // Optionally show a toast or error message
+      }
+    }
+    setLoadingDoubts(false);
+  };
+
+  fetchDoubts();
+}, [subjectName]); // Rerun when subjectName changes
 
   return (
     <div className="flex flex-col gap-8">
@@ -65,18 +87,36 @@ export default function SubjectPage() {
           </Card>
         </TabsContent>
         <TabsContent value="doubts">
-          <Card>
-            <CardHeader>
-              <CardTitle>Doubts</CardTitle>
-              <CardDescription>All doubts for {subjectName}.</CardDescription>
-            </CardHeader>
-            <CardContent>
-               <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-lg">
-                <p className="text-muted-foreground">Doubts for {subjectName} will be here.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+  <Card>
+    <CardHeader>
+      <CardTitle>Doubts</CardTitle>
+      <CardDescription>All doubts for {subjectName}.</CardDescription>
+    </CardHeader>
+    <CardContent>
+      {loadingDoubts ? (
+        <div className="flex items-center justify-center h-48">
+          <p className="text-muted-foreground">Loading doubts...</p>
+        </div>
+      ) : doubts.length === 0 ? (
+        <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-lg">
+          <p className="text-muted-foreground">No doubts posted for {subjectName} yet.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {doubts.map((doubt) => (
+            <div key={doubt.id} className="border p-4 rounded-md">
+              <p className="font-semibold">{doubt.questionText}</p>
+              {/* You might want to fetch the asker's name using doubt.askedBy */}
+              <p className="text-sm text-muted-foreground">Asked by: {doubt.askedBy}</p>
+              {/* Display answers here later */}
+            </div>
+          ))}
+        </div>
+      )}
+    </CardContent>
+  </Card>
+</TabsContent>
+
       </Tabs>
     </div>
   );
