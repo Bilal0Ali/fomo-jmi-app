@@ -12,6 +12,7 @@ import { aiDoubtSolver, AiDoubtSolverInput, AiDoubtSolverOutput } from '@/ai/flo
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
+import { createDoubt } from '@/lib/firestore/doubts';
 const subjects = [
   "International Trade",
   "Indian Economic Policy",
@@ -65,7 +66,7 @@ export function AskDoubtDialog() {
     }
   };
 
-  const handleSubmitRequest = () => {
+  const handleSubmitRequest = async () => {
     if (!doubtInput.doubtText || !doubtInput.subjectMaterial) {
       toast({
         title: "Missing Fields",
@@ -75,10 +76,30 @@ export function AskDoubtDialog() {
       return;
     }
     
-    console.log("Submitting request:", { ...doubtInput, aiSuggestion: aiResponse?.suggestions });
+    const user = auth.currentUser;
+    if (!user) {
+      toast({ title: "Authentication Error", description: "You must be logged in to post a doubt.", variant: "destructive" });
+      return;
+    }
+
+    setIsLoading(true); // Use isLoading or a separate state for posting
+
+    try {
+      await createDoubt({
+        questionText: doubtInput.doubtText,
+        subject: doubtInput.subjectMaterial,
+        askedBy: user.uid,
+        status: 'pending',
+        answers: [],
+      });
+
     toast({
       title: "Request Submitted!",
       description: "Your doubt has been posted for your peers.",
+    });
+    } catch (error) {
+      console.error("Error submitting doubt:", error);
+      toast({ title: "Submission Failed", description: "Could not post your doubt. Please try again.", variant: "destructive" });
     });
     setOpen(false);
     setAiResponse(null);

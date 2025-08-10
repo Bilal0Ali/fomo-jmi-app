@@ -1,3 +1,6 @@
+import { uploadFile } from "@/lib/storage";
+import { createResource } from "@/lib/firestore/resources";
+import { ResourceCategory } from "@/lib/firestore/resources"; // Import ResourceCategory type
 
 "use client";
 
@@ -9,8 +12,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { UploadCloud } from 'lucide-react';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL, UploadTaskSnapshot } from 'firebase/storage';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { Progress } from '@/components/ui/progress';
 
@@ -52,105 +53,85 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
     }
   }
 
-  const handleUpload = (fileToUpload: File) => {
-    const user = auth.currentUser;
-    if (!user || !fileToUpload) return;
+  const handleUpload = async (fileToUpload: File) => {
+  const user = auth.currentUser;
+  if (!user || !fileToUpload) return;
 
+  setUploadProgress(0);
+  setDownloadURL(null);
+  setIsUploading(true);
+
+  try {
+    // Use the uploadFile utility function
+    const downloadUrl = await uploadFile(fileToUpload, `resources/${user.uid}/${Date.now()}-${fileToUpload.name}`);
+    setDownloadURL(downloadUrl);
+    toast({
+      title: "File Ready!",
+      description: "Your file has been uploaded. Add a title and submit.",
+    });
+    setIsUploading(false);
+  } catch (error) {
+    console.error("Upload error:", error);
+    toast({
+      title: "Upload Failed",
+      description: "Could not upload the file. Please try again.",
+      variant: "destructive",
+    });
     setUploadProgress(0);
-    setDownloadURL(null);
-    setIsUploading(true); 
+    setIsUploading(false);
+  }
+};
 
-    const storage = getStorage();
-    const uniqueFileName = `${Date.now()}-${fileToUpload.name}`;
-    const storageRef = ref(storage, `resources/${user.uid}/${uniqueFileName}`);
-    const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
-
-    uploadTask.on('state_changed',
-        (snapshot: UploadTaskSnapshot) => {
-            console.log("Upload state changed:", snapshot); // Log the snapshot
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadProgress(progress);
-        },
-        (error) => {
-            console.error("Upload error:", error); // More verbose error logging
-            console.error("Upload error in progress:", error);
-            toast({
-                title: "Upload Failed",
-                description: "Could not upload the file. Please try again.",
-                variant: "destructive",
-            });
-            setUploadProgress(0);
-            setIsUploading(false);
-        },
-        async () => {
-            try {
-                const url = await getDownloadURL(uploadTask.snapshot.ref);
-                setDownloadURL(url);
-                toast({
-                    title: "File Ready!",
-                    description: "Your file has been uploaded. Add a title and submit.",
-                });
-                setIsUploading(false); 
-            } catch (error) {
-                 console.error("Could not get download URL:", error);
-                 toast({ // Also log error when getting download URL
-                    title: "Upload Failed",
-                    description: "Could not process the uploaded file. Please try again.",
-                    variant: "destructive",
-                });
-                setIsUploading(false);
-            }
-        }
-    );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const user = auth.currentUser;
-    if (!user) {
-        toast({ title: "Authentication Error", description: "You must be logged in to upload.", variant: "destructive" });
-        return;
-    }
-    if (!title || !downloadURL) {
-      toast({
-        title: "Missing Information",
-        description: "Please provide a title and ensure the file is uploaded.",
-        variant: "destructive",
-      });
-      return;
-    }
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const user = auth.currentUser;
+  if (!user) {
+    toast({ title: "Authentication Error", description: "You must be logged in to upload.", variant: "destructive" });
+    return;
+  }
+  if (!title || !downloadURL) {
+    toast({
+      title: "Missing Information",
+      description: "Please provide a title and ensure the file is uploaded.",
+      variant: "destructive",
+    });
+    return;
+  }
 
-    setIsSaving(true);
+  setIsSaving(true);
 
-    try {
-        await addDoc(collection(db, 'resources'), {
-            fileName: title,
-            fileUrl: downloadURL,
-            originalFileName: file?.name || 'N/A',
-            uploadedBy: user.uid,
-            uploadedByName: user.displayName || "Anonymous",
-            uploadedAt: serverTimestamp(),
-            subject: subject,
-            description: description,
-            type: type
-        });
+  try {
+    // Use the createResource utility function
+    const resourceData = {
+      fileName: title,
+      fileType: file?.type || 'N/A', // Get file type from the state
+      downloadURL: downloadURL,
+      uploadedBy: user.uid,
+      subject: subject,
+      category: type as ResourceCategory, // Cast type to ResourceCategory
+      // timestamp will be added by the utility function
+    };
+    await createResource(resourceData);
 
-        toast({
-            title: "Upload Successful!",
-            description: `Your ${type} has been saved successfully.`,
-        });
-        setOpen(false);
-    } catch (error) {
-        console.error("Firestore error:", error);
-        toast({
-            title: "Submission Failed",
-            description: "Could not save the resource details. Please try again.",
-            variant: "destructive",
-        });
-    } finally {
-        setIsSaving(false);
-    }
-  };
+    toast({
+      title: "Upload Successful!",
+      description: `Your ${type} has been saved successfully.`,
+    });
+    setOpen(false);
+  } catch (error) {
+    console.error("Error saving resource:", error);
+    toast({
+      title: "Submission Failed",
+      description: "Could not save the resource details. Please try again.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsSaving(false);
+  }
+};
+
   
   const getButtonText = () => {
     if (isSaving) return 'Saving...';

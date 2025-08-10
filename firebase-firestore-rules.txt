@@ -1,0 +1,29 @@
+firestore
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection rules
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // Resources collection rules
+    match /resources/{resourceId} {
+      allow read: if true; // Everyone can read resources
+      allow create: if request.auth.uid != null && request.resource.data.uploadedBy == request.auth.uid; // Only logged-in users can create, and uploadedBy must match their UID
+      allow update, delete: if false; // No updates or deletes allowed
+    }
+
+    // Doubts collection rules
+    match /doubts/{doubtId} {
+      allow read: if true; // Everyone can read doubts
+      allow create: if request.auth.uid != null && request.resource.data.askedBy == request.auth.uid; // Only logged-in users can create, and askedBy must match their UID
+      // Allow updates only if the change is adding to the 'answers' array
+      allow update: if request.auth.uid != null
+                     && request.resource.data.keys().hasAll(resource.data.keys()) // Ensure no fields are removed
+                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers']) // Only 'answers' field is affected
+                     && request.resource.data.answers is list; // Ensure 'answers' is a list
+      allow delete: if false; // No deletion of the main doubt document
+    }
+  }
+}

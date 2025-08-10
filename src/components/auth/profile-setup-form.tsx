@@ -14,6 +14,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "@/lib/firebase";
 import { updateProfile } from "firebase/auth";
+import { createUser } from "@/lib/firestore/users";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -63,9 +64,15 @@ export function ProfileSetupForm() {
       // Set the user's display name in Firebase Auth
       await updateProfile(user, { displayName: values.name });
 
-      // Save other details to localStorage for this demo
-      localStorage.setItem('userName', values.name.split(' ')[0]);
-      localStorage.setItem('userFullName', values.name);
+      // Save user profile to Firestore
+      await createUser(user.uid, {
+        displayName: values.name,
+        email: user.email || '', // Assuming email is available from auth
+        profilePictureURL: user.photoURL || '', // Initialize with empty string or a default if needed
+        class: values.course,
+        semester: values.semester,
+        karmaPoints: 0, // Initialize karmaPoints
+      });
 
       toast({
         title: "Profile Saved!",
