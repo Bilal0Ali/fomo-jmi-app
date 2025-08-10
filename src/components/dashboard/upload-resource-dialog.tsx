@@ -194,9 +194,11 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                     <Input id="file" type="file" className="col-span-3" onChange={handleFileChange} required accept=".pdf,.doc,.docx,.ppt,.pptx" />
                 </div>
                 {isUploading && (
-                    <div className="col-span-4 px-1">
-                        <Progress value={uploadProgress} className="w-full" />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">{uploadProgress < 100 ? `${Math.round(uploadProgress)}% uploaded` : 'Upload complete!'}</p>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <div className="col-start-2 col-span-3">
+                            <Progress value={uploadProgress} className="w-full" />
+                            <p className="text-xs text-muted-foreground mt-1 text-center">{uploadProgress < 100 ? `${Math.round(uploadProgress)}% uploaded` : 'Upload complete!'}</p>
+                        </div>
                     </div>
                 )}
             </div>
