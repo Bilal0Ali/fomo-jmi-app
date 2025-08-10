@@ -13,6 +13,10 @@ function toTitleCase(str: string) {
 export default function SubjectPage({ params }: { params: { slug: string } }) {
   const subjectName = toTitleCase(params?.slug || '');
 
+  if (!subjectName) {
+    return <div>Loading subject...</div>;
+  }
+
   return (
     <div className="flex flex-col gap-8">
       <div>
