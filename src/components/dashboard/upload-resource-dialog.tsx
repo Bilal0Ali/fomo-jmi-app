@@ -56,6 +56,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
 
     setUploadProgress(0);
     setDownloadURL(null);
+    setIsSubmitting(true); // Disable button while uploading
 
     const storage = getStorage();
     const uniqueFileName = `${Date.now()}-${fileToUpload.name}`;
@@ -74,7 +75,8 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                 description: "Could not upload the file. Please try again.",
                 variant: "destructive",
             });
-            setUploadProgress(0); // Reset on error
+            setUploadProgress(0);
+            setIsSubmitting(false);
         },
         async () => {
             try {
@@ -84,6 +86,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                     title: "File Ready!",
                     description: "Your file has been uploaded. Add a title and submit.",
                 });
+                setIsSubmitting(false); // Enable button on success
             } catch (error) {
                  console.error("Could not get download URL:", error);
                  toast({
@@ -91,6 +94,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                     description: "Could not process the uploaded file. Please try again.",
                     variant: "destructive",
                 });
+                setIsSubmitting(false);
             }
         }
     );
@@ -131,7 +135,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
             title: "Upload Successful!",
             description: `Your ${type} has been saved successfully.`,
         });
-        setOpen(false); // Close dialog on success
+        setOpen(false);
     } catch (error) {
         console.error("Firestore error:", error);
         toast({
@@ -180,18 +184,18 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="file" className="text-right">File</Label>
-                    <Input id="file" type="file" className="col-span-3" onChange={handleFileChange} required accept=".pdf" />
+                    <Input id="file" type="file" className="col-span-3" onChange={handleFileChange} required accept=".pdf,.doc,.docx,.ppt,.pptx" />
                 </div>
                 {uploadProgress > 0 && (
                     <div className="col-span-4 px-1">
                         <Progress value={uploadProgress} className="w-full" />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">{Math.round(uploadProgress)}% uploaded</p>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">{uploadProgress < 100 ? `${Math.round(uploadProgress)}% uploaded` : 'Upload complete!'}</p>
                     </div>
                 )}
             </div>
             <DialogFooter>
-            <Button type="submit" disabled={!downloadURL || isSubmitting} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                {isSubmitting ? 'Uploading...' : 'Upload'}
+            <Button type="submit" disabled={isSubmitting || uploadProgress < 100} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                {isSubmitting ? (uploadProgress < 100 ? 'Uploading...' : 'Saving...') : 'Upload'}
             </Button>
             </DialogFooter>
         </form>
