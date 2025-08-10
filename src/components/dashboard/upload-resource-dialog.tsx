@@ -9,6 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { UploadCloud } from 'lucide-react';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
 
 interface UploadResourceDialogProps {
   subject: string;
@@ -25,6 +28,11 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) {
+        toast({ title: "Authentication Error", description: "You must be logged in to upload.", variant: "destructive" });
+        return;
+    }
     if (!title || !file) {
       toast({
         title: "Missing Fields",
@@ -36,29 +44,50 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
 
     setIsLoading(true);
 
-    // Mock upload
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    console.log({
-      subject,
-      type,
-      title,
-      description,
-      fileName: file.name,
-      fileSize: file.size,
-    });
-    
-    toast({
-      title: "Upload Successful!",
-      description: `Your ${type} for ${subject} has been uploaded successfully.`,
-    });
-    
-    setIsLoading(false);
-    setOpen(false);
-    // Reset form
-    setTitle('');
-    setDescription('');
-    setFile(null);
+    try {
+        const storage = getStorage();
+        // Use a unique file name, e.g., by prepending timestamp
+        const uniqueFileName = `${Date.now()}-${file.name}`;
+        const storageRef = ref(storage, `resources/${user.uid}/${uniqueFileName}`);
+        
+        // Upload file to storage
+        const uploadTask = await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(uploadTask.ref);
+
+        // Add metadata to Firestore
+        await addDoc(collection(db, 'resources'), {
+            fileName: title,
+            fileUrl: downloadURL,
+            originalFileName: file.name,
+            uploadedBy: user.uid,
+            uploadedByName: user.displayName || "Anonymous", // Storing display name
+            uploadedAt: serverTimestamp(),
+            subject: subject,
+            description: description,
+            type: type
+        });
+
+        toast({
+            title: "Upload Successful!",
+            description: `Your ${type} has been uploaded successfully.`,
+        });
+
+        setOpen(false);
+        // Reset form
+        setTitle('');
+        setDescription('');
+        setFile(null);
+
+    } catch (error) {
+        console.error("Upload error:", error);
+        toast({
+            title: "Upload Failed",
+            description: "Could not upload the file. Please try again.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
   
 
@@ -97,7 +126,7 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="file" className="text-right">File</Label>
-                    <Input id="file" type="file" className="col-span-3" onChange={e => setFile(e.target.files ? e.target.files[0] : null)} required accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg" />
+                    <Input id="file" type="file" className="col-span-3" onChange={e => setFile(e.target.files ? e.target.files[0] : null)} required accept=".pdf" />
                 </div>
             </div>
             <DialogFooter>
@@ -110,4 +139,3 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
     </Dialog>
   );
 }
-
