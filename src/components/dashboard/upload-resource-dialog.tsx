@@ -1,6 +1,3 @@
-import { uploadFile } from "@/lib/storage";
-import { createResource } from "@/lib/firestore/resources";
-import { ResourceCategory } from "@/lib/firestore/resources"; // Import ResourceCategory type
 
 "use client";
 
@@ -12,8 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { UploadCloud } from 'lucide-react';
-import { db, auth } from '@/lib/firebase';
+import { auth, storage } from '@/lib/firebase';
 import { Progress } from '@/components/ui/progress';
+import { UploadTaskSnapshot, getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface UploadResourceDialogProps {
   subject: string;
@@ -53,36 +53,46 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
     }
   }
 
-  const handleUpload = async (fileToUpload: File) => {
-  const user = auth.currentUser;
-  if (!user || !fileToUpload) return;
-
-  setUploadProgress(0);
-  setDownloadURL(null);
-  setIsUploading(true);
-
-  try {
-    // Use the uploadFile utility function
-    const downloadUrl = await uploadFile(fileToUpload, `resources/${user.uid}/${Date.now()}-${fileToUpload.name}`);
-    setDownloadURL(downloadUrl);
-    toast({
-      title: "File Ready!",
-      description: "Your file has been uploaded. Add a title and submit.",
-    });
-    setIsUploading(false);
-  } catch (error) {
-    console.error("Upload error:", error);
-    toast({
-      title: "Upload Failed",
-      description: "Could not upload the file. Please try again.",
-      variant: "destructive",
-    });
+  const handleUpload = (fileToUpload: File) => {
+    const user = auth.currentUser;
+    if (!user || !fileToUpload) return;
+  
     setUploadProgress(0);
-    setIsUploading(false);
-  }
-};
+    setDownloadURL(null);
+    setIsUploading(true);
+  
+    const filePath = `user-uploads/${user.uid}/${Date.now()}-${fileToUpload.name}`;
+    const storageRef = ref(storage, filePath);
+    const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
 
+    uploadTask.on('state_changed',
+      (snapshot: UploadTaskSnapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (error) => {
+        console.error("Upload error:", error);
+        toast({
+          title: "Upload Failed",
+          description: "Could not upload the file. Please try again.",
+          variant: "destructive",
+        });
+        setUploadProgress(0);
+        setIsUploading(false);
+      },
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
+            setDownloadURL(downloadUrl);
+            toast({
+                title: "File Ready!",
+                description: "Your file has been uploaded. Add a title and submit.",
+            });
+            setIsUploading(false);
+        });
+      }
+    );
   };
+
 
  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -107,13 +117,14 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
     const resourceData = {
       fileName: title,
       fileType: file?.type || 'N/A', // Get file type from the state
-      downloadURL: downloadURL,
+      fileUrl: downloadURL,
       uploadedBy: user.uid,
+      uploadedByName: user.displayName || 'Anonymous',
       subject: subject,
-      category: type as ResourceCategory, // Cast type to ResourceCategory
-      // timestamp will be added by the utility function
+      category: type,
+      uploadedAt: serverTimestamp(),
     };
-    await createResource(resourceData);
+    await addDoc(collection(db, "resources"), resourceData);
 
     toast({
       title: "Upload Successful!",
@@ -174,9 +185,9 @@ export function UploadResourceDialog({ subject, type }: UploadResourceDialogProp
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="file" className="text-right">File</Label>
-                    <Input id="file" type="file" className="col-span-3" onChange={handleFileChange} required accept=".pdf,.doc,.docx,.ppt,.pptx" />
+                    <Input id="file" type="file" className="col-span-3" onChange={handleFileChange} required accept=".pdf" />
                 </div>
-                {isUploading && (
+                {(isUploading || uploadProgress > 0) && (
                     <div className="grid grid-cols-4 items-center gap-4">
                         <div className="col-start-2 col-span-3">
                             <Progress value={uploadProgress} className="w-full" />

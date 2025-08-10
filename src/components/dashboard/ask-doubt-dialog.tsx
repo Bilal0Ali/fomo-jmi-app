@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -11,7 +12,7 @@ import { PenSquare, Bot, Sparkles, Loader2 } from 'lucide-react';
 import { aiDoubtSolver, AiDoubtSolverInput, AiDoubtSolverOutput } from '@/ai/flows/ai-doubt-solver';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
+import { auth } from '@/lib/firebase';
 import { createDoubt } from '@/lib/firestore/doubts';
 const subjects = [
   "International Trade",
@@ -89,21 +90,20 @@ export function AskDoubtDialog() {
         questionText: doubtInput.doubtText,
         subject: doubtInput.subjectMaterial,
         askedBy: user.uid,
-        status: 'pending',
-        answers: [],
       });
 
-    toast({
-      title: "Request Submitted!",
-      description: "Your doubt has been posted for your peers.",
-    });
+      toast({
+        title: "Request Submitted!",
+        description: "Your doubt has been posted for your peers.",
+      });
     } catch (error) {
       console.error("Error submitting doubt:", error);
       toast({ title: "Submission Failed", description: "Could not post your doubt. Please try again.", variant: "destructive" });
-    });
+    }
     setOpen(false);
     setAiResponse(null);
     setDoubtInput({ doubtText: '', subjectMaterial: '' });
+    setIsLoading(false);
   };
 
   return (
@@ -164,8 +164,8 @@ export function AskDoubtDialog() {
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
             Get AI Suggestions
           </Button>
-          <Button onClick={handleSubmitRequest} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-            Post to Peers
+          <Button onClick={handleSubmitRequest} className="bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
+            {isLoading ? 'Posting...' : 'Post to Peers'}
           </Button>
         </DialogFooter>
       </DialogContent>
