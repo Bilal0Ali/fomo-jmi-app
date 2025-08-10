@@ -11,7 +11,7 @@ function toTitleCase(str: string) {
 }
 
 export default function SubjectPage({ params }: { params: { slug: string } }) {
-  const subjectName = toTitleCase(params?.slug);
+  const subjectName = toTitleCase(params?.slug || '');
 
   return (
     <div className="flex flex-col gap-8">
@@ -54,7 +54,7 @@ export default function SubjectPage({ params }: { params: { slug: string } }) {
                <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-lg">
                 <p className="text-muted-foreground">Resources for {subjectName} will be here.</p>
               </div>
-            </CardContent>
+            </CrdContent>
           </Card>
         </TabsContent>
         <TabsContent value="doubts">
