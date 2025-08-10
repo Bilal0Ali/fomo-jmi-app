@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, Edit, Save, LogOut, Shield, Bell } from "lucide-react";
+import { Upload, Edit, Save, LogOut, Shield, Bell, Trophy } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { ChangePasswordDialog } from "@/components/profile/change-password-dialog";
@@ -94,15 +94,24 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div>
             <h1 className="text-3xl font-bold tracking-tight">Your Profile</h1>
             <p className="text-muted-foreground">Manage your personal information and settings.</p>
         </div>
-        <Button onClick={() => isEditing ? handleSave() : setIsEditing(true)}>
-            {isEditing ? <Save className="mr-2"/> : <Edit className="mr-2"/>}
-            {isEditing ? "Save Changes" : "Edit Profile"}
-        </Button>
+        <div className="flex items-center gap-4">
+            <div className="text-right">
+                <div className="flex items-center justify-end gap-2">
+                    <Trophy className="text-amber-400" />
+                    <span className="text-2xl font-bold">125</span>
+                </div>
+                <p className="text-sm text-muted-foreground">Karma Points</p>
+            </div>
+            <Button onClick={() => isEditing ? handleSave() : setIsEditing(true)}>
+                {isEditing ? <Save className="mr-2"/> : <Edit className="mr-2"/>}
+                {isEditing ? "Save Changes" : "Edit Profile"}
+            </Button>
+        </div>
       </div>
 
       <ImageCropperDialog 
